@@ -1,0 +1,11 @@
+{
+	"mappings": [
+		{
+			"mapping": "/test",
+			"verb": "GET",
+			"content": {
+				"hello": "world"
+			}
+		}
+	]
+}
