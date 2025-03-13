@@ -18,7 +18,11 @@ type Config struct {
 
 func ParseConfiguration(filePath string) []Config {
 	var value Test
-	json.Unmarshal(readFile(filePath), &value)
+	err := json.Unmarshal(readFile(filePath), &value)
+	if err != nil {
+		fmt.Printf("Error parsing configuration: %s\n", err)
+		os.Exit(2)
+	}
 	return value.Thing
 }
 
