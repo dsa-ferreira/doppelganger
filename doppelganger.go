@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type mappers func(*gin.Engine, config.Config)
+type mappers func(*gin.Engine, config.Mapping)
 
 func main() {
 	if len(os.Args) != 2 {
@@ -17,11 +17,15 @@ func main() {
 		os.Exit(1)
 	}
 	configFile := os.Args[1]
-	mappings := config.ParseConfiguration(configFile)
+	mappings, err := config.ParseConfiguration(configFile)
+	if err != nil {
+		fmt.Printf("Error parsing configuration: %s\n", err)
+		os.Exit(2)
+	}
 
 	r := gin.Default()
 
-	for _, mapping := range mappings {
+	for _, mapping := range mappings.Mappings {
 		mapper, err := selectMap(mapping.Verb)
 		if err != nil {
 			fmt.Println(err)
@@ -39,18 +43,34 @@ func selectMap(verb string) (mappers, error) {
 		return getMap, nil
 	case "POST":
 		return postMap, nil
+	case "PUT":
+		return putMap, nil
+	case "DELETE":
+		return deleteMap, nil
 	}
 	return nil, errors.New("No verb match found for verb " + verb)
 }
 
-func getMap(router *gin.Engine, config config.Config) {
+func getMap(router *gin.Engine, config config.Mapping) {
 	router.GET(config.Mapping, func(c *gin.Context) {
 		c.JSON(200, config.Content)
 	})
 }
 
-func postMap(router *gin.Engine, config config.Config) {
+func postMap(router *gin.Engine, config config.Mapping) {
 	router.POST(config.Mapping, func(c *gin.Context) {
+		c.JSON(200, config.Content)
+	})
+}
+
+func putMap(router *gin.Engine, config config.Mapping) {
+	router.PUT(config.Mapping, func(c *gin.Context) {
+		c.JSON(200, config.Content)
+	})
+}
+
+func deleteMap(router *gin.Engine, config config.Mapping) {
+	router.DELETE(config.Mapping, func(c *gin.Context) {
 		c.JSON(200, config.Content)
 	})
 }

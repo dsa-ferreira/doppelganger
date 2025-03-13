@@ -2,35 +2,37 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 )
 
-type Test struct {
-	Thing []Config `json:"mappings"`
+type Configuration struct {
+	Mappings []Mapping `json:"mappings"`
 }
 
-type Config struct {
+type Mapping struct {
 	Mapping string `json:"mapping"`
 	Verb    string `json:"verb"`
 	Content any    `json:"content"`
 }
 
-func ParseConfiguration(filePath string) []Config {
-	var value Test
-	err := json.Unmarshal(readFile(filePath), &value)
+func ParseConfiguration(filePath string) (*Configuration, error) {
+	file, err := readFile(filePath)
 	if err != nil {
-		fmt.Printf("Error parsing configuration: %s\n", err)
-		os.Exit(2)
+		return nil, err
 	}
-	return value.Thing
+
+	var value Configuration
+	err = json.Unmarshal(file, &value)
+	if err != nil {
+		return nil, err
+	}
+	return &value, nil
 }
 
-func readFile(file string) []byte {
+func readFile(file string) ([]byte, error) {
 	fileBytes, err := os.ReadFile(file)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(3)
+		return nil, err
 	}
-	return fileBytes
+	return fileBytes, nil
 }
