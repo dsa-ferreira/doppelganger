@@ -1,15 +1,12 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
 	"github.com/dsa-ferreira/doppelganger/internal/config"
-	"github.com/gin-gonic/gin"
+	"github.com/dsa-ferreira/doppelganger/internal/server"
 )
-
-type mappers func(*gin.Engine, config.Mapping)
 
 func main() {
 	if len(os.Args) != 2 {
@@ -23,54 +20,5 @@ func main() {
 		os.Exit(2)
 	}
 
-	r := gin.Default()
-
-	for _, mapping := range mappings.Mappings {
-		mapper, err := selectMap(mapping.Verb)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(0)
-		}
-		mapper(r, mapping)
-	}
-
-	r.Run()
-}
-
-func selectMap(verb string) (mappers, error) {
-	switch verb {
-	case "GET":
-		return getMap, nil
-	case "POST":
-		return postMap, nil
-	case "PUT":
-		return putMap, nil
-	case "DELETE":
-		return deleteMap, nil
-	}
-	return nil, errors.New("No verb match found for verb " + verb)
-}
-
-func getMap(router *gin.Engine, config config.Mapping) {
-	router.GET(config.Mapping, func(c *gin.Context) {
-		c.JSON(200, config.Content)
-	})
-}
-
-func postMap(router *gin.Engine, config config.Mapping) {
-	router.POST(config.Mapping, func(c *gin.Context) {
-		c.JSON(200, config.Content)
-	})
-}
-
-func putMap(router *gin.Engine, config config.Mapping) {
-	router.PUT(config.Mapping, func(c *gin.Context) {
-		c.JSON(200, config.Content)
-	})
-}
-
-func deleteMap(router *gin.Engine, config config.Mapping) {
-	router.DELETE(config.Mapping, func(c *gin.Context) {
-		c.JSON(200, config.Content)
-	})
+	server.StartServer(mappings)
 }
