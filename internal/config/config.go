@@ -10,9 +10,10 @@ type Configuration struct {
 }
 
 type Mapping struct {
-	Mapping string `json:"mapping"`
-	Verb    string `json:"verb"`
-	Content any    `json:"content"`
+	Mapping  string `json:"mapping"`
+	Verb     string `json:"verb"`
+	RespCode int    `json:"code"`
+	Content  any    `json:"content"`
 }
 
 func ParseConfiguration(filePath string) (*Configuration, error) {

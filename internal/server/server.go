@@ -42,24 +42,24 @@ func selectMap(verb string) (mappers, error) {
 
 func getMap(router *gin.Engine, config config.Mapping) {
 	router.GET(config.Mapping, func(c *gin.Context) {
-		c.JSON(200, config.Content)
+		c.JSON(config.RespCode, config.Content)
 	})
 }
 
 func postMap(router *gin.Engine, config config.Mapping) {
 	router.POST(config.Mapping, func(c *gin.Context) {
-		c.JSON(200, config.Content)
+		c.JSON(config.RespCode, config.Content)
 	})
 }
 
 func putMap(router *gin.Engine, config config.Mapping) {
 	router.PUT(config.Mapping, func(c *gin.Context) {
-		c.JSON(200, config.Content)
+		c.JSON(config.RespCode, config.Content)
 	})
 }
 
 func deleteMap(router *gin.Engine, config config.Mapping) {
 	router.DELETE(config.Mapping, func(c *gin.Context) {
-		c.JSON(200, config.Content)
+		c.JSON(config.RespCode, config.Content)
 	})
 }
