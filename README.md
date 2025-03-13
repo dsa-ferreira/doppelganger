@@ -1,4 +1,4 @@
-# Doppelganger 
+# Doppelganger
 
 Simple CLI mock server. Uses a JSON spec and the Golang Gin framework to setup a web server with stubbed result.
 
