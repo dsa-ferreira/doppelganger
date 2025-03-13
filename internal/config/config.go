@@ -19,7 +19,7 @@ type Mapping struct {
 func (mapping *Mapping) UnmarshalJSON(data []byte) error {
 	type Alias Mapping
 	type Aux struct {
-		RespCode *int    `json:"append"` // We override the type of Append
+		RespCode *int    `json:"code"` // We override the type of Append
 		Verb     *string `json:"verb"`
 		*Alias
 	}
@@ -31,7 +31,7 @@ func (mapping *Mapping) UnmarshalJSON(data []byte) error {
 
 	if aux.RespCode == nil {
 		// Field "append" is not set: we want the default value to be true.
-		mapping.RespCode = 204
+		mapping.RespCode = 200
 	} else {
 		// Field "append" is set: dereference and assign the value.
 		mapping.RespCode = *aux.RespCode
