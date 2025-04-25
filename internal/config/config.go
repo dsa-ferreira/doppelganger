@@ -6,21 +6,47 @@ import (
 )
 
 type Configuration struct {
+	Endpoints []Endpoint `json:"endpoint"`
+}
+
+type Endpoint struct {
+	Path     string    `json:"path"`
+	Verb     string    `json:"verb"`
 	Mappings []Mapping `json:"mappings"`
 }
 
+func (endpoint *Endpoint) UnmarshalJSON(data []byte) error {
+	type Alias Endpoint
+	type Aux struct {
+		Verb *string `json:"verb"`
+		*Alias
+	}
+
+	aux := &Aux{Alias: (*Alias)(endpoint)}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if aux.Verb == nil {
+		endpoint.Verb = "GET"
+	} else {
+		endpoint.Verb = *aux.Verb
+	}
+
+	return nil
+}
+
 type Mapping struct {
-	Mapping  string `json:"mapping"`
-	Verb     string `json:"verb"`
-	RespCode int    `json:"code"`
-	Content  any    `json:"content"`
+	Params   []Param `json:"params"`
+	RespCode int     `json:"code"`
+	Content  any     `json:"content"`
 }
 
 func (mapping *Mapping) UnmarshalJSON(data []byte) error {
 	type Alias Mapping
 	type Aux struct {
-		RespCode *int    `json:"code"` // We override the type of Append
-		Verb     *string `json:"verb"`
+		RespCode *int `json:"code"`
 		*Alias
 	}
 	aux := &Aux{Alias: (*Alias)(mapping)}
@@ -30,21 +56,24 @@ func (mapping *Mapping) UnmarshalJSON(data []byte) error {
 	}
 
 	if aux.RespCode == nil {
-		// Field "append" is not set: we want the default value to be true.
-		mapping.RespCode = 200
+		if aux.Content == nil {
+			mapping.RespCode = 204
+		} else {
+			mapping.RespCode = 200
+		}
 	} else {
-		// Field "append" is set: dereference and assign the value.
 		mapping.RespCode = *aux.RespCode
-	}
-
-	if aux.Verb == nil {
-		mapping.Verb = "GET"
-	} else {
-		mapping.Verb = *aux.Verb
 	}
 
 	return nil
 }
+
+type Param struct {
+	Key   string `json:"key"`
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
 func ParseConfiguration(filePath string) (*Configuration, error) {
 	file, err := readFile(filePath)
 	if err != nil {
