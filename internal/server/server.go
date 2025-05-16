@@ -1,8 +1,10 @@
 package server
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -12,8 +14,39 @@ import (
 
 type mappers func(*gin.Engine, config.Endpoint)
 
-func StartServer(configuration *config.Configuration) {
+func RequestLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		buf, _ := io.ReadAll(c.Request.Body)
+		rdr1 := io.NopCloser(bytes.NewBuffer(buf))
+		rdr2 := io.NopCloser(bytes.NewBuffer(buf))
+
+		body := readBody(rdr1)
+		if body != "" {
+			fmt.Println("Request body: " + body)
+		}
+
+		c.Request.Body = rdr2
+		c.Next()
+	}
+}
+
+func readBody(reader io.Reader) string {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(reader)
+
+	if buf != nil {
+		return buf.String()
+	}
+
+	return ""
+}
+
+func StartServer(configuration *config.Configuration, verbose bool) {
 	r := gin.Default()
+
+	if verbose {
+		r.Use(RequestLogger())
+	}
 
 	for _, endpoint := range configuration.Endpoints {
 		mapper, err := selectMap(endpoint.Verb)

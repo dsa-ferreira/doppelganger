@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -9,16 +10,17 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Can't do this without a config file")
-		os.Exit(1)
-	}
-	configFile := os.Args[1]
+
+	verbose := flag.Bool("verbose", false, "increase verbosity")
+
+	flag.Parse()
+
+	configFile := flag.Args()[0]
 	mappings, err := config.ParseConfiguration(configFile)
 	if err != nil {
 		fmt.Printf("Error parsing configuration: %s\n", err)
 		os.Exit(2)
 	}
 
-	server.StartServer(mappings)
+	server.StartServer(mappings, *verbose)
 }

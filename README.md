@@ -40,7 +40,7 @@ Clone the repo -> cd into the folder -> `sudo make install`
           "verb": {
             "type": "string",
             "description": "HTTP verb being mapped",
-            "enum": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+            "enum": ["GET", "POST", "PUT", "DELETE"]
           },
           "mappings": {
             "type": "array",
