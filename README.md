@@ -21,6 +21,13 @@ Clone the repo -> cd into the folder -> `sudo make install`
 
 `doppelganger <json_file>`
 
+
+##### Options
+
+Can use -verbose to log request payloads
+
+##### Json file schema
+
 ```
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
