@@ -21,6 +21,13 @@ Clone the repo -> cd into the folder -> `sudo make install`
 
 `doppelganger <json_file>`
 
+
+##### Options
+
+Can use -verbose to log request payloads
+
+##### Json file schema
+
 ```
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
@@ -40,7 +47,7 @@ Clone the repo -> cd into the folder -> `sudo make install`
           "verb": {
             "type": "string",
             "description": "HTTP verb being mapped",
-            "enum": ["GET", "POST", "PUT", "DELETE"]
+            "enum": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
           },
           "mappings": {
             "type": "array",
