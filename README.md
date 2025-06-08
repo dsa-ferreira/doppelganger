@@ -34,6 +34,10 @@ Can use -verbose to log request payloads
   "type": "object",
   "required": ["endpoint"],
   "properties": {
+    "port": {
+      "type": integer,
+      "description": "Port for which the server will listen to"
+    },
     "endpoint": {
       "type": "array",
       "items": {
@@ -47,7 +51,7 @@ Can use -verbose to log request payloads
           "verb": {
             "type": "string",
             "description": "HTTP verb being mapped",
-            "enum": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+            "enum": ["GET", "POST", "PUT", "DELETE"]
           },
           "mappings": {
             "type": "array",
@@ -101,6 +105,7 @@ Can use -verbose to log request payloads
 
 ```
 {
+  "port": 8081,
   "endpoint": [
     {
       "path": "/api/user/:id",

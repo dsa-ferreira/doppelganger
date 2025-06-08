@@ -7,6 +7,7 @@ import (
 
 type Configuration struct {
 	Endpoints []Endpoint `json:"endpoint"`
+	Port      *int       `json:"port"`
 }
 
 type Endpoint struct {
