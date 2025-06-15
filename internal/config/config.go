@@ -5,6 +5,10 @@ import (
 	"os"
 )
 
+type Servers struct {
+	Configurations []Configuration `json:"servers"`
+}
+
 type Configuration struct {
 	Endpoints []Endpoint `json:"endpoint"`
 	Port      *int       `json:"port"`
@@ -75,13 +79,13 @@ type Param struct {
 	Value string `json:"value"`
 }
 
-func ParseConfiguration(filePath string) (*Configuration, error) {
+func ParseConfiguration(filePath string) (*Servers, error) {
 	file, err := readFile(filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	var value Configuration
+	var value Servers
 	err = json.Unmarshal(file, &value)
 	if err != nil {
 		return nil, err
