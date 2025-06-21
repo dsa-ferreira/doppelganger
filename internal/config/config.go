@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"os"
 )
 
@@ -10,9 +10,49 @@ type Servers struct {
 	Configurations []Configuration `json:"servers"`
 }
 
+func (servers *Servers) UnmarshalJSON(data []byte) error {
+	type Alias Servers
+	type Aux struct {
+		*Alias
+	}
+
+	aux := &Aux{Alias: (*Alias)(servers)}
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+
+	if len(servers.Configurations) == 0 {
+		return errors.New("No server found")
+	}
+
+	return nil
+}
+
 type Configuration struct {
 	Endpoints []Endpoint `json:"endpoint"`
-	Port      *int       `json:"port"`
+	Port      int        `json:"port"`
+}
+
+func (configuration *Configuration) UnmarshalJSON(data []byte) error {
+	type Alias Configuration
+	type Aux struct {
+		Port *int `json:"port"`
+		*Alias
+	}
+
+	aux := &Aux{Alias: (*Alias)(configuration)}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if aux.Port == nil {
+		configuration.Port = 8000
+	} else {
+		configuration.Port = *aux.Port
+	}
+
+	return nil
 }
 
 type Endpoint struct {
@@ -89,27 +129,15 @@ func ParseConfiguration(filePath string) (*Servers, error) {
 	var value Servers
 	err = json.Unmarshal(file, &value)
 	if err != nil {
-		return nil, err
-	}
-
-	if value.Configurations == nil {
-		fallback, err := FallBackConfiguration(file)
+		var fallback Configuration
+		err = json.Unmarshal(file, &fallback)
 		if err != nil {
 			return nil, err
 		}
-		return &Servers{Configurations: []Configuration{*fallback}}, nil
+
+		return &Servers{Configurations: []Configuration{fallback}}, nil
 	}
 
-	return &value, nil
-}
-
-func FallBackConfiguration(file []byte) (*Configuration, error) {
-	fmt.Printf("Parsing fallback\n")
-	var value Configuration
-	err := json.Unmarshal(file, &value)
-	if err != nil {
-		return nil, err
-	}
 	return &value, nil
 }
 
