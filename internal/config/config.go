@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
@@ -87,6 +88,25 @@ func ParseConfiguration(filePath string) (*Servers, error) {
 
 	var value Servers
 	err = json.Unmarshal(file, &value)
+	if err != nil {
+		return nil, err
+	}
+
+	if value.Configurations == nil {
+		fallback, err := FallBackConfiguration(file)
+		if err != nil {
+			return nil, err
+		}
+		return &Servers{Configurations: []Configuration{*fallback}}, nil
+	}
+
+	return &value, nil
+}
+
+func FallBackConfiguration(file []byte) (*Configuration, error) {
+	fmt.Printf("Parsing fallback\n")
+	var value Configuration
+	err := json.Unmarshal(file, &value)
 	if err != nil {
 		return nil, err
 	}
