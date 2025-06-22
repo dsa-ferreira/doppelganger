@@ -32,59 +32,72 @@ Can use -verbose to log request payloads
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
-  "required": ["endpoint"],
+  "required": ["servers"],
   "properties": {
-    "endpoint": {
+    "servers": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["path", "mappings"],
+        "required": ["endpoint"],
         "properties": {
-          "path": { 
-            "type": "string",
-            "description": "Path for the enpoint's mapping"
+          "port": {
+            "type": integer,
+            "description": "Port for which the server will listen to"
           },
-          "verb": {
-            "type": "string",
-            "description": "HTTP verb being mapped",
-            "enum": ["GET", "POST", "PUT", "DELETE"]
-          },
-          "mappings": {
+          "endpoint": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["content"],
+              "required": ["path", "mappings"],
               "properties": {
-                "params": {
+                "path": { 
+                  "type": "string",
+                  "description": "Path for the enpoint's mapping"
+                },
+                "verb": {
+                  "type": "string",
+                  "description": "HTTP verb being mapped",
+                  "enum": ["GET", "POST", "PUT", "DELETE"]
+                },
+                "mappings": {
                   "type": "array",
                   "items": {
                     "type": "object",
-                    "required": ["key", "type", "value"],
+                    "required": ["content"],
                     "properties": {
-                      "key": { 
-                        "type": "string",
-                        "description": "The parameter/attribute's key"
+                      "params": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["key", "type", "value"],
+                          "properties": {
+                            "key": { 
+                              "type": "string",
+                              "description": "The parameter/attribute's key"
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "The type of the parameter. Can be path, query or body params.",
+                              "enum": ["BODY", "PATH", "QUERY"]
+                            },
+                            "value": { 
+                              "type": "string",
+                              "description": "The value that will need to match the received parameter."
+                            }
+                          }
+                        }
                       },
-                      "type": {
-                        "type": "string",
-                        "description": "The type of the parameter. Can be path, query or body params.",
-                        "enum": ["BODY", "PATH", "QUERY"]
+                      "code": { 
+                        "type": "integer",
+                        "description": "Http status code for the response"
                       },
-                      "value": { 
-                        "type": "string",
-                        "description": "The value that will need to match the received parameter."
+                      "content": {
+                        "type": "object",
+                        "description": "Open json object that will be used as the response. No validation or parsing made on this field.",
+                        "additionalProperties": true
                       }
                     }
                   }
-                },
-                "code": { 
-                  "type": "integer",
-                  "description": "Http status code for the response"
-                },
-                "content": {
-                  "type": "object",
-                  "description": "Open json object that will be used as the response. No validation or parsing made on this field.",
-                  "additionalProperties": true
                 }
               }
             }
@@ -94,59 +107,65 @@ Can use -verbose to log request payloads
     }
   }
 }
-
 ```
 
 ###### Example
 
 ```
 {
-  "endpoint": [
-    {
-      "path": "/api/user/:id",
-      "verb": "POST",
-      "mappings": [
-        {
-          "params": [
-            {
-              "key": "id",
-              "type": "BODY",
-              "value": "123"
-            },
-            {
-              "key": "id",
-              "type": "PATH",
-              "value": "123"
-            },
-            {
-              "key": "name",
-              "type": "QUERY",
-              "value": "John"
-            }
-          ],
-          "code": 201,
-          "content": {
-            "message": "User created"
+  "servers": 
+    [
+      {
+        "port": 8081,
+        "endpoint": [
+          {
+            "path": "/api/user/:id",
+            "verb": "POST",
+            "mappings": [
+              {
+                "params": [
+                  {
+                    "key": "id",
+                    "type": "BODY",
+                    "value": "123"
+                  },
+                  {
+                    "key": "id",
+                    "type": "PATH",
+                    "value": "123"
+                  },
+                  {
+                    "key": "name",
+                    "type": "QUERY",
+                    "value": "John"
+                  }
+                ],
+                "code": 201,
+                "content": {
+                  "message": "User created"
+                }
+              },
+              {
+                "params": [
+                ],
+                "content": {
+                  "message": "Empty one!"
+                }
+              }
+            ]
+          },
+          {
+            "path": "/api/status",
+            "mappings": [
+              {
+                "content": {
+                  "status": "ok"
+                }
+              }
+            ]
           }
-        },
-        {
-          "params": [
-          ],
-          "content": {
-            "message": "Empty one!"
-          }
-        }
-      ]
-    },
-    {
-      "path": "/api/status",
-      "mappings": [
-        {
-          "content": {
-            "status": "ok"
-          }
-        }
-      ]
+        ]
+      }
     }
   ]
 }
