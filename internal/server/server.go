@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/dsa-ferreira/doppelganger/internal/config"
@@ -57,7 +58,7 @@ func StartServer(configuration *config.Configuration, verbose bool) {
 		mapper(r, endpoint)
 	}
 
-	r.Run(fmt.Sprintf(":%d", configuration.Port))
+	r.Run()
 }
 
 func selectMap(verb string) (mappers, error) {
@@ -99,12 +100,20 @@ func deleteMap(router *gin.Engine, config config.Endpoint) {
 }
 
 func mapReturnsWithBody(c *gin.Context, mappings []config.Mapping) {
-	var body map[string]interface{}
+	contentType := c.GetHeader("Content-Type")
 
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	var body map[string]interface{}
+	var err error
+	switch contentType {
+	case "application/json":
+		body, err = readFromJson(c)
+	case "application/x-www-form-urlencoded", "multipart/form-data":
+		body, err = readFromForm(c)
 	}
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
 	mapReturns(c, body, mappings)
 }
 
@@ -147,4 +156,36 @@ func allMatch(c *gin.Context, body map[string]interface{}, params []config.Param
 	}
 
 	return true
+}
+
+func readFromJson(c *gin.Context) (map[string]interface{}, error) {
+	var body map[string]interface{}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
+func readFromForm(c *gin.Context) (map[string]interface{}, error) {
+	formData := c.Request.PostForm
+	if formData == nil {
+		if err := c.Request.ParseForm(); err != nil {
+			return nil, err
+		}
+		return squashFormData(c.Request.PostForm), nil
+	}
+	return nil, errors.New("something went terribly wrong")
+}
+
+func squashFormData(formData url.Values) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	for key, values := range formData {
+		if len(values) > 1 {
+			result[key] = values // keep as []string
+		} else {
+			result[key] = values[0] // collapse single value
+		}
+	}
+	return result
 }
