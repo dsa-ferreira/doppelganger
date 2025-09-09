@@ -58,7 +58,7 @@ func StartServer(configuration *config.Configuration, verbose bool) {
 		mapper(r, endpoint)
 	}
 
-	r.Run()
+	r.Run(fmt.Sprintf(":%d", configuration.Port))
 }
 
 func selectMap(verb string) (mappers, error) {
