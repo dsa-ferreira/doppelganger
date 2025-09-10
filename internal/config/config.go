@@ -89,7 +89,7 @@ func (endpoint *Endpoint) UnmarshalJSON(data []byte) error {
 type Mapping struct {
 	Params   []expressions.Expression `json:"params"`
 	RespCode int                      `json:"code"`
-	Content  any                      `json:"content"`
+	Content  Content                   `json:"content"`
 }
 
 func (mapping *Mapping) UnmarshalJSON(data []byte) error {
@@ -97,6 +97,7 @@ func (mapping *Mapping) UnmarshalJSON(data []byte) error {
 	type Aux struct {
 		Params   []json.RawMessage `json:"params"`
 		RespCode *int              `json:"code"`
+		Content  *Content `json:"content"`
 		*Alias
 	}
 	aux := &Aux{Alias: (*Alias)(mapping)}
@@ -120,9 +121,90 @@ func (mapping *Mapping) UnmarshalJSON(data []byte) error {
 			mapping.RespCode = 204
 		} else {
 			mapping.RespCode = 200
+			mapping.Content = *aux.Content
+
 		}
 	} else {
 		mapping.RespCode = *aux.RespCode
+		mapping.Content = *aux.Content
+	}
+
+	return nil
+}
+
+type Param struct {
+	Key   string `json:"key"`
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
+type ContentType int
+
+const (
+	ContentTypeJSON ContentType = iota
+	ContentTypeFILE
+)
+
+var stringToContentType = map[string]ContentType{
+	"JSON": ContentTypeJSON,
+	"FILE": ContentTypeFILE,
+}
+
+type Content struct {
+	Type ContentType `json:"type"`
+	Data any         `json:"data"`
+}
+
+type DataFILE struct {
+	Path string `json:"path"`
+}
+
+func (dataFile *DataFILE) UnmarshalJSON(data []byte) error {
+	type Alias DataFILE
+	type Aux struct {
+		*Alias
+	}
+	aux := &Aux{Alias: (*Alias)(dataFile)}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (content *Content) UnmarshalJSON(data []byte) error {
+	type Alias Content
+	type Aux struct {
+		Type *string          `json:"type"`
+		Data *json.RawMessage `json:"data"`
+		*Alias
+	}
+	aux := &Aux{Alias: (*Alias)(content)}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if aux.Type == nil {
+		content.Type = ContentTypeJSON
+	} else {
+		switch stringToContentType[*aux.Type] {
+		case ContentTypeJSON:
+			content.Type = ContentTypeJSON
+			var jsonData any
+			if err := json.Unmarshal(*aux.Data, &jsonData); err != nil {
+				return err
+			}
+			content.Data = jsonData
+		case ContentTypeFILE:
+			content.Type = ContentTypeFILE
+			var fileData DataFILE
+			if err := json.Unmarshal(*aux.Data, &fileData); err != nil {
+				return err
+			}
+			content.Data = fileData
+		}
 	}
 
 	return nil

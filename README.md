@@ -2,33 +2,31 @@
 
 Simple CLI mock server. Uses a JSON spec and the Golang Gin framework to setup a web server with stubbed result.
 
-### Current Features
+## Current Features
 
 - Basic endpoint mapping
 - Responses based on request values (PATH, QUERY or BODY)
 - Response codes
 
-
-### Features under construction
+## Features under construction
 
 - Response templating
 
-### Installing
+## Installing
 
 Clone the repo -> cd into the folder -> `sudo make install`
 
-### How to use
+## How to use
 
 `doppelganger <json_file>`
 
-
-##### Options
+### Options
 
 Can use -verbose to log request payloads
 
-##### Json file schema (OUT OF DATE, will update soon)
+### Json file schema (OUT OF DATE, will update soon)
 
-```
+```json
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
@@ -94,7 +92,25 @@ Can use -verbose to log request payloads
                       "content": {
                         "type": "object",
                         "description": "Open json object that will be used as the response. No validation or parsing made on this field.",
-                        "additionalProperties": true
+                        "required": ["data"],
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["JSON", "FILE"],
+                            "default": "JSON"
+                          },
+                          "data": {
+                            "type": "object",
+                            "description": "Either an open json object that will be used as the response or a file path",
+                            "properties": {
+                              "path": {
+                                "type": "string",
+                                "description": "Path to the file, relative to where you botted the doppleganger"
+                              }
+                            },
+                            "additionalProperties": true
+                          }
+                        }
                       }
                     }
                   }
@@ -109,9 +125,9 @@ Can use -verbose to log request payloads
 }
 ```
 
-###### Example
+#### Example
 
-```
+```json
 {
   "servers": 
     [
@@ -149,7 +165,10 @@ Can use -verbose to log request payloads
                 "params": [
                 ],
                 "content": {
-                  "message": "Empty one!"
+                  "type": "JSON",
+                  "data": {
+                    "message": "Empty one!"
+                  }
                 }
               }
             ]
@@ -159,7 +178,10 @@ Can use -verbose to log request payloads
             "mappings": [
               {
                 "content": {
-                  "status": "ok"
+                  "type": "FILE",
+                  "data": {
+                    "path": "/path/to/file"
+                  }
                 }
               }
             ]
@@ -170,4 +192,3 @@ Can use -verbose to log request payloads
   ]
 }
 ```
-
