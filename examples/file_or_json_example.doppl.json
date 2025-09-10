@@ -1,0 +1,46 @@
+{
+    "servers": [
+        {
+            "port": 8081,
+            "endpoint": [
+                {
+                    "path": "/:type",
+                    "verb": "GET",
+                    "mappings": [
+                        {
+                            "params": [
+                                {
+                                    "key": "type",
+                                    "type": "PATH",
+                                    "value": "json"
+                                }
+                            ],
+                            "code": 201,
+                            "content": {
+                                "type": "JSON",
+                                "data": {
+                                    "message": "User created"
+                                }
+                            }
+                        },
+                        {
+                            "params": [
+                                {
+                                    "key": "type",
+                                    "type": "PATH",
+                                    "value": "file"
+                                }
+                            ],
+                            "content": {
+                                "type": "FILE",
+                                "data": {
+                                    "path": "./examples/file_or_json_example.doppl.json"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
