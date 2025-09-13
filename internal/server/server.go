@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/dsa-ferreira/doppelganger/internal/config"
+	"github.com/dsa-ferreira/doppelganger/internal/expressions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -126,31 +127,9 @@ func mapReturns(c *gin.Context, body map[string]interface{}, mappings []config.M
 	}
 }
 
-func allMatch(c *gin.Context, body map[string]interface{}, params []config.Param) bool {
+func allMatch(c *gin.Context, body map[string]interface{}, params []expressions.Expression) bool {
 	for _, param := range params {
-		var value string
-
-		switch param.Type {
-		case "BODY":
-			aux := body[param.Key]
-			if aux == nil {
-				value = ""
-			} else {
-				value = fmt.Sprintf("%v", body[param.Key])
-			}
-		case "PATH":
-			value = c.Param(param.Key)
-		case "QUERY":
-			value = c.Query(param.Key)
-		default:
-			return false
-		}
-
-		if value == "" {
-			fmt.Println(fmt.Sprintf("WARNING: No parameter of type %s found for key %s", param.Type, param.Key))
-			return false
-		}
-		if value != param.Value {
+		if !param.Evaluate(expressions.EvaluationFetchers{BodyFetcher: body, QueryFetcher: c.Query, QueryArrayFetcher: c.QueryArray, ParamFetcher: c.Param}).(bool) {
 			return false
 		}
 	}

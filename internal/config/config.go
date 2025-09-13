@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strconv"
+
+	"github.com/dsa-ferreira/doppelganger/internal/expressions"
 )
 
 type Servers struct {
@@ -84,21 +87,32 @@ func (endpoint *Endpoint) UnmarshalJSON(data []byte) error {
 }
 
 type Mapping struct {
-	Params   []Param `json:"params"`
-	RespCode int     `json:"code"`
-	Content  any     `json:"content"`
+	Params   []expressions.Expression `json:"params"`
+	RespCode int                      `json:"code"`
+	Content  any                      `json:"content"`
 }
 
 func (mapping *Mapping) UnmarshalJSON(data []byte) error {
 	type Alias Mapping
 	type Aux struct {
-		RespCode *int `json:"code"`
+		Params   []json.RawMessage `json:"params"`
+		RespCode *int              `json:"code"`
 		*Alias
 	}
 	aux := &Aux{Alias: (*Alias)(mapping)}
 
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
+	}
+
+	mapping.Params = make([]expressions.Expression, len(aux.Params))
+	for i, v := range aux.Params {
+		result, err := expressions.BuildExpression([]byte(v))
+		if err != nil {
+			panic("error building param n: " + strconv.Itoa(i))
+		}
+
+		mapping.Params[i] = result
 	}
 
 	if aux.RespCode == nil {
@@ -112,12 +126,6 @@ func (mapping *Mapping) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
-}
-
-type Param struct {
-	Key   string `json:"key"`
-	Type  string `json:"type"`
-	Value string `json:"value"`
 }
 
 func ParseConfiguration(filePath string) (*Servers, error) {
