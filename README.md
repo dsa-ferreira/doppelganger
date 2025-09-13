@@ -26,7 +26,7 @@ Clone the repo -> cd into the folder -> `sudo make install`
 
 Can use -verbose to log request payloads
 
-##### Json file schema (OUT OF DATE)
+##### Json file schema (OUT OF DATE, will update soon)
 
 ```
 {
