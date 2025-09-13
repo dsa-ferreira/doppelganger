@@ -1,4 +1,4 @@
-# Doppelganger
+# Doppelganger 
 
 Simple CLI mock server. Uses a JSON spec and the Golang Gin framework to setup a web server with stubbed result.
 
@@ -26,7 +26,7 @@ Clone the repo -> cd into the folder -> `sudo make install`
 
 Can use -verbose to log request payloads
 
-##### Json file schema
+##### Json file schema (OUT OF DATE)
 
 ```
 {
