@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 )
 
@@ -72,7 +73,7 @@ func andFactory(data []byte) (Expression, error) {
 			return nil, err
 		}
 		if expression.ReturnType() != reflect.Bool {
-			panic("invalid block. AND values must be bool")
+			panic("invalid block: AND values must be bool")
 		}
 		expressions[i] = expression
 	}
@@ -114,7 +115,7 @@ func orFactory(data []byte) (Expression, error) {
 			return nil, err
 		}
 		if expression.ReturnType() != reflect.Bool {
-			panic("invalid block. OR values must be bool")
+			panic("invalid block: OR values must be bool")
 		}
 		expressions[i] = expression
 	}
@@ -144,7 +145,7 @@ func notFactory(data []byte) (Expression, error) {
 	}
 
 	if expression.ReturnType() != reflect.Bool {
-		panic("invalid block. NOT value must be bool")
+		panic("invalid block: NOT value must be bool")
 	}
 
 	return NotExpression{expression: expression}, nil
@@ -159,7 +160,7 @@ func (e ContainsExpression) Evaluate(fetchers EvaluationFetchers) any {
 	listValues := e.list.Evaluate(fetchers).([]string)
 
 	for _, value := range e.values {
-		if !contains(listValues, value.Evaluate(fetchers).(string)) {
+		if !slices.Contains(listValues, value.Evaluate(fetchers).(string)) {
 			return false
 		}
 	}
@@ -174,6 +175,9 @@ func containsFactory(data []byte) (Expression, error) {
 	body := parseJson(data)
 
 	rawExpressions := body["values"]
+	if rawExpressions == nil {
+		panic("invalid block: CONTAINS must have values attribute")
+	}
 	var rawMessages []json.RawMessage
 	if err := json.Unmarshal(rawExpressions, &rawMessages); err != nil {
 		panic(err)
@@ -192,14 +196,18 @@ func containsFactory(data []byte) (Expression, error) {
 		expressions[i] = expression
 	}
 
-	list, err := BuildExpression(body["list"])
+	rawList := body["list"]
+	if rawList == nil {
+		panic("invalid block: CONTAINS must have list attribute")
+	}
+	list, err := BuildExpression(rawList)
 
 	if err != nil {
 		return nil, err
 	}
 
 	if list.ReturnType() != reflect.Slice {
-		panic("invalid blocks. CONTAINS list must be slice")
+		panic("invalid block: CONTAINS list must be slice")
 	}
 
 	return ContainsExpression{list: list, values: expressions}, nil
@@ -253,7 +261,7 @@ func equalsFactory(data []byte) (Expression, error) {
 	}
 
 	if right.ReturnType() != left.ReturnType() {
-		panic("invalid blocks. EQUALS right and left must be the same kind")
+		panic("invalid blocks: EQUALS right and left must be the same kind")
 	}
 
 	return EqualsExpression{left: left, right: right}, nil
@@ -397,12 +405,4 @@ func parseJsonString(data []byte) string {
 	}
 	return s
 
-}
-func contains(slice []string, target string) bool {
-	for _, s := range slice {
-		if s == target {
-			return true
-		}
-	}
-	return false
 }
