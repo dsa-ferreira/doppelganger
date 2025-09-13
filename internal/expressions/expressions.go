@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"regexp"
 	"slices"
 	"strings"
 )
@@ -35,6 +36,7 @@ func init() {
 		"PATH":        pathValueFactory,
 		"STRING":      stringValueFactory,
 		"EQUALS":      equalsFactory,
+		"REGEX":       regexFactory,
 		"CONTAINS":    containsFactory,
 	}
 }
@@ -265,6 +267,38 @@ func equalsFactory(data []byte) (Expression, error) {
 	}
 
 	return EqualsExpression{left: left, right: right}, nil
+}
+
+type RegexExpression struct {
+	value   Expression
+	pattern string
+}
+
+func (e RegexExpression) Evaluate(fetchers EvaluationFetchers) any {
+	value := e.value.Evaluate(fetchers).(string)
+	pattern := e.pattern
+	res, _ := regexp.MatchString(pattern, value)
+	return res
+}
+
+func (e RegexExpression) ReturnType() reflect.Kind {
+	return reflect.TypeOf(true).Kind()
+}
+
+func regexFactory(data []byte) (Expression, error) {
+	body := parseJson(data)
+
+	value, err := BuildExpression(body["value"])
+	if err != nil {
+		return nil, err
+	}
+	pattern := parseJsonString(body["pattern"])
+
+	if value.ReturnType() != reflect.String {
+		panic("invalid blocks: REGEX value is not string")
+	}
+
+	return RegexExpression{value: value, pattern: pattern}, nil
 }
 
 type BodyValueExpression struct {
