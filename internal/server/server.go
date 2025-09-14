@@ -103,7 +103,7 @@ func deleteMap(router *gin.Engine, config config.Endpoint) {
 func mapReturnsWithBody(c *gin.Context, mappings []config.Mapping) {
 	contentType := c.GetHeader("Content-Type")
 
-	var body map[string]interface{}
+	var body map[string]any
 	var err error
 	switch contentType {
 	case "application/json":
@@ -118,10 +118,10 @@ func mapReturnsWithBody(c *gin.Context, mappings []config.Mapping) {
 	mapReturns(c, body, mappings)
 }
 
-func mapReturns(c *gin.Context, body map[string]interface{}, mappings []config.Mapping) {
+func mapReturns(c *gin.Context, body map[string]any, mappings []config.Mapping) {
 	for _, mapping := range mappings {
 		if allMatch(c, body, mapping.Params) {
-			c.JSON(mapping.RespCode, mapping.Content)
+			buildResponse(c, mapping.RespCode, mapping.Content)
 			return
 		}
 	}
@@ -137,15 +137,25 @@ func allMatch(c *gin.Context, body map[string]interface{}, params []expressions.
 	return true
 }
 
-func readFromJson(c *gin.Context) (map[string]interface{}, error) {
-	var body map[string]interface{}
+func buildResponse(c *gin.Context, code int, content config.Content) {
+	switch content.Type {
+	case config.ContentTypeJson:
+		c.JSON(code, content.Data)
+	case config.ContentTypeFile:
+		c.Status(code)
+		c.File(content.Data.(config.DataFile).Path)
+	}
+}
+
+func readFromJson(c *gin.Context) (map[string]any, error) {
+	var body map[string]any
 	if err := c.ShouldBindJSON(&body); err != nil {
 		return nil, err
 	}
 	return body, nil
 }
 
-func readFromForm(c *gin.Context) (map[string]interface{}, error) {
+func readFromForm(c *gin.Context) (map[string]any, error) {
 	formData := c.Request.PostForm
 	if formData == nil {
 		if err := c.Request.ParseForm(); err != nil {
@@ -156,8 +166,8 @@ func readFromForm(c *gin.Context) (map[string]interface{}, error) {
 	return nil, errors.New("something went terribly wrong")
 }
 
-func squashFormData(formData url.Values) map[string]interface{} {
-	result := make(map[string]interface{})
+func squashFormData(formData url.Values) map[string]any {
+	result := make(map[string]any)
 
 	for key, values := range formData {
 		if len(values) > 1 {
