@@ -139,11 +139,11 @@ func allMatch(c *gin.Context, body map[string]interface{}, params []expressions.
 
 func buildResponse(c *gin.Context, code int, content config.Content) {
 	switch content.Type {
-	case config.ContentTypeJSON:
+	case config.ContentTypeJson:
 		c.JSON(code, content.Data)
-	case config.ContentTypeFILE:
+	case config.ContentTypeFile:
 		c.Status(code)
-		c.File(content.Data.(config.DataFILE).Path)
+		c.File(content.Data.(config.DataFile).Path)
 	}
 }
 

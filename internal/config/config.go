@@ -141,13 +141,13 @@ type Param struct {
 type ContentType int
 
 const (
-	ContentTypeJSON ContentType = iota
-	ContentTypeFILE
+	ContentTypeJson ContentType = iota
+	ContentTypeFile
 )
 
 var stringToContentType = map[string]ContentType{
-	"JSON": ContentTypeJSON,
-	"FILE": ContentTypeFILE,
+	"JSON": ContentTypeJson,
+	"FILE": ContentTypeFile,
 }
 
 type Content struct {
@@ -155,22 +155,8 @@ type Content struct {
 	Data any         `json:"data"`
 }
 
-type DataFILE struct {
+type DataFile struct {
 	Path string `json:"path"`
-}
-
-func (dataFile *DataFILE) UnmarshalJSON(data []byte) error {
-	type Alias DataFILE
-	type Aux struct {
-		*Alias
-	}
-	aux := &Aux{Alias: (*Alias)(dataFile)}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (content *Content) UnmarshalJSON(data []byte) error {
@@ -187,19 +173,19 @@ func (content *Content) UnmarshalJSON(data []byte) error {
 	}
 
 	if aux.Type == nil {
-		content.Type = ContentTypeJSON
+		content.Type = ContentTypeJson
 	} else {
 		switch stringToContentType[*aux.Type] {
-		case ContentTypeJSON:
-			content.Type = ContentTypeJSON
+		case ContentTypeJson:
+			content.Type = ContentTypeJson
 			var jsonData any
 			if err := json.Unmarshal(*aux.Data, &jsonData); err != nil {
 				return err
 			}
 			content.Data = jsonData
-		case ContentTypeFILE:
-			content.Type = ContentTypeFILE
-			var fileData DataFILE
+		case ContentTypeFile:
+			content.Type = ContentTypeFile
+			var fileData DataFile
 			if err := json.Unmarshal(*aux.Data, &fileData); err != nil {
 				return err
 			}
