@@ -89,7 +89,7 @@ func (endpoint *Endpoint) UnmarshalJSON(data []byte) error {
 type Mapping struct {
 	Params   []expressions.Expression `json:"params"`
 	RespCode int                      `json:"code"`
-	Content  Content                   `json:"content"`
+	Content  Content                  `json:"content"`
 }
 
 func (mapping *Mapping) UnmarshalJSON(data []byte) error {
@@ -97,7 +97,7 @@ func (mapping *Mapping) UnmarshalJSON(data []byte) error {
 	type Aux struct {
 		Params   []json.RawMessage `json:"params"`
 		RespCode *int              `json:"code"`
-		Content  *Content `json:"content"`
+		Content  *Content          `json:"content"`
 		*Alias
 	}
 	aux := &Aux{Alias: (*Alias)(mapping)}
@@ -174,15 +174,20 @@ func (content *Content) UnmarshalJSON(data []byte) error {
 
 	if aux.Type == nil {
 		content.Type = ContentTypeJson
+		var err error
+		content.Data, err = parseJsonData(aux.Data)
+		if err != nil {
+			return err
+		}
 	} else {
 		switch stringToContentType[*aux.Type] {
 		case ContentTypeJson:
 			content.Type = ContentTypeJson
-			var jsonData any
-			if err := json.Unmarshal(*aux.Data, &jsonData); err != nil {
+			var err error
+			content.Data, err = parseJsonData(aux.Data)
+			if err != nil {
 				return err
 			}
-			content.Data = jsonData
 		case ContentTypeFile:
 			content.Type = ContentTypeFile
 			var fileData DataFile
@@ -194,6 +199,19 @@ func (content *Content) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
+}
+
+func parseJsonData(data *json.RawMessage) (any, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	var jsonData any
+	if err := json.Unmarshal(*data, &jsonData); err != nil {
+		return nil, err
+	}
+
+	return jsonData, nil
 }
 
 func ParseConfiguration(filePath string) (*Servers, error) {
