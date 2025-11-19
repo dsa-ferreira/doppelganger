@@ -67,7 +67,7 @@ Can use -verbose to log request payloads
                         "type": "array",
                         "items": {
                           "type": "object",
-                          "required": ["key", "type", "value"],
+                          "required": ["type"],
                           "properties": {
                             "key": { 
                               "type": "string",
@@ -76,7 +76,19 @@ Can use -verbose to log request payloads
                             "type": {
                               "type": "string",
                               "description": "The type of the parameter. Can be path, query or body params.",
-                              "enum": ["BODY", "PATH", "QUERY"]
+                              "enum": [
+                                "AND", 
+                                "OR", 
+                                "NOT", 
+                                "QUERY_ARRAY", 
+                                "STRING", 
+                                "EQUALS", 
+                                "REGEX", 
+                                "CONTAINS", 
+                                "BODY", 
+                                "PATH", 
+                                "QUERY"
+                              ]
                             },
                             "value": { 
                               "type": "string",
