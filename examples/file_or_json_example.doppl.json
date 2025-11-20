@@ -10,9 +10,8 @@
                         {
                             "params": [
                                 {
-                                    "key": "type",
                                     "type": "PATH",
-                                    "value": "json"
+                                    "id": "json"
                                 }
                             ],
                             "code": 201,
@@ -26,9 +25,8 @@
                         {
                             "params": [
                                 {
-                                    "key": "type",
                                     "type": "PATH",
-                                    "value": "file"
+                                    "id": "file"
                                 }
                             ],
                             "content": {
