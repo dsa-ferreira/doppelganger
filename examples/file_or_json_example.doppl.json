@@ -10,8 +10,15 @@
                         {
                             "params": [
                                 {
-                                    "type": "PATH",
-                                    "id": "json"
+                                    "type": "EQUALS",
+                                    "right": {
+                                        "type": "PATH",
+                                        "id": "type"
+                                    },
+                                    "left": {
+                                        "type": "STRING",
+                                        "value": "json"
+                                    }
                                 }
                             ],
                             "code": 201,
@@ -25,8 +32,15 @@
                         {
                             "params": [
                                 {
-                                    "type": "PATH",
-                                    "id": "file"
+                                    "type": "EQUALS",
+                                    "right": {
+                                        "type": "PATH",
+                                        "id": "type"
+                                    },
+                                    "left": {
+                                        "type": "STRING",
+                                        "value": "file"
+                                    }
                                 }
                             ],
                             "content": {
