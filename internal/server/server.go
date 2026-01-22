@@ -103,16 +103,53 @@ func deleteMap(router *gin.Engine, config config.Endpoint) {
 func mapReturnsWithBody(c *gin.Context, mappings []config.Mapping) {
 	contentType := c.GetHeader("Content-Type")
 
+	// Check if body is empty when content type is specified
+	if contentType != "" {
+		if c.Request.ContentLength == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Request body is empty but Content-Type header is present",
+			})
+			return
+		}
+	}
+
 	var body map[string]any
 	var err error
 	switch contentType {
-	case "application/json":
+	case "application/json", "application/json; charset=utf-8":
 		body, err = readFromJson(c)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid JSON payload: " + err.Error(),
+			})
+			return
+		}
 	case "application/x-www-form-urlencoded", "multipart/form-data":
 		body, err = readFromForm(c)
-	}
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid form data: " + err.Error(),
+			})
+			return
+		}
+	case "":
+		// No content type specified, try to read as JSON if body exists
+		if c.Request.ContentLength > 0 {
+			body, err = readFromJson(c)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": "Unable to parse request body. Please specify Content-Type header or ensure valid JSON format",
+				})
+				return
+			}
+		} else {
+			body = make(map[string]any)
+		}
+	default:
+		c.JSON(http.StatusUnsupportedMediaType, gin.H{
+			"error": "Unsupported Content-Type: " + contentType + ". Supported types are: application/json, application/x-www-form-urlencoded, multipart/form-data",
+		})
+		return
 	}
 
 	mapReturns(c, body, mappings)
@@ -125,6 +162,10 @@ func mapReturns(c *gin.Context, body map[string]any, mappings []config.Mapping) 
 			return
 		}
 	}
+	// No mapping matched - return 404 with error message
+	c.JSON(http.StatusNotFound, gin.H{
+		"error": "No matching endpoint configuration found for this request",
+	})
 }
 
 func allMatch(c *gin.Context, body map[string]interface{}, params []expressions.Expression) bool {
@@ -148,22 +189,32 @@ func buildResponse(c *gin.Context, code int, content config.Content) {
 }
 
 func readFromJson(c *gin.Context) (map[string]any, error) {
+	// Check if body is actually empty
+	if c.Request.ContentLength == 0 {
+		return nil, errors.New("request body is empty")
+	}
+
 	var body map[string]any
 	if err := c.ShouldBindJSON(&body); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse JSON: %w", err)
 	}
 	return body, nil
 }
 
 func readFromForm(c *gin.Context) (map[string]any, error) {
+	// Check if body is actually empty
+	if c.Request.ContentLength == 0 {
+		return nil, errors.New("request body is empty")
+	}
+
 	formData := c.Request.PostForm
 	if formData == nil {
 		if err := c.Request.ParseForm(); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to parse form data: %w", err)
 		}
 		return squashFormData(c.Request.PostForm), nil
 	}
-	return nil, errors.New("something went terribly wrong")
+	return squashFormData(formData), nil
 }
 
 func squashFormData(formData url.Values) map[string]any {
