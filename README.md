@@ -1,6 +1,10 @@
 # Doppelganger
 
-Simple CLI mock server. Uses a JSON spec and the Golang Gin framework to setup a web server with stubbed result.
+Simple CLI mock server. Uses a JSON spec to setup a web server with stubbed results.
+
+Available in two implementations:
+- **Go** - Uses the Golang Gin framework
+- **Python** - Uses Flask
 
 ## Current Features
 
@@ -14,15 +18,55 @@ Simple CLI mock server. Uses a JSON spec and the Golang Gin framework to setup a
 
 ## Installing
 
+### Go Version
+
 Clone the repo -> cd into the folder -> `sudo make install`
+
+### Python Version
+
+Requires Python 3.10+
+
+**Recommended: Using pipx** (handles virtual environment automatically)
+
+```bash
+# Install pipx if not already installed
+sudo apt install pipx
+
+# Install doppelganger-py
+pipx install ./python
+```
+
+**Or using make**
+
+```bash
+make install-py-pipx
+```
+
+On older systems or other distributions:
+
+```bash
+pip install --user ./python
+```
+
+**Or using make**
+
+```bash
+make install-py
+```
 
 ## How to use
 
+### Go Version
+
 `doppelganger <json_file>`
+
+### Python Version
+
+`doppelganger-py <json_file>`
 
 ### Options
 
-Can use -verbose to log request payloads
+Can use `-verbose` or `--verbose` to log request payloads
 
 ### Json file schema (OUT OF DATE, will update soon)
 
