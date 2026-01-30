@@ -2,9 +2,10 @@
 
 Simple CLI mock server. Uses a JSON spec to setup a web server with stubbed results.
 
-Available in two implementations:
+Available in three implementations:
 - **Go** - Uses the Golang Gin framework
 - **Python** - Uses Flask
+- **TypeScript** - Uses Express.js
 
 ## Current Features
 
@@ -54,6 +55,17 @@ pip install --user ./python
 make install-py
 ```
 
+### TypeScript Version
+
+Requires Node.js 18+
+
+```bash
+cd typescript
+npm install
+npm run build
+npm link  # Makes 'doppelganger-ts' available globally
+```
+
 ## How to use
 
 ### Go Version
@@ -64,9 +76,13 @@ make install-py
 
 `doppelganger-py <json_file>`
 
+### TypeScript Version
+
+`doppelganger-ts <json_file>`
+
 ### Options
 
-Can use `-verbose` or `--verbose` to log request payloads
+Can use `-v` or `--verbose` to log request payloads
 
 ### Json file schema (OUT OF DATE, will update soon)
 

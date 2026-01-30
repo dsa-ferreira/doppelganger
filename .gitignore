@@ -9,3 +9,9 @@ build/
 dist/
 *.egg
 .venv/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+.env
